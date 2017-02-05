@@ -1,15 +1,20 @@
 package me.bemind.fingerprintexample;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
+import android.os.CancellationSignal;
 import android.os.Handler;
 import android.os.Looper;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
-import android.support.v4.os.CancellationSignal;
 
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
@@ -30,35 +35,43 @@ import javax.crypto.SecretKey;
  * Created by angelomoroni on 01/02/17.
  */
 
-public class FingerPrintUIHelper extends FingerprintManagerCompat.AuthenticationCallback {
+public class FingerPrintUIHelper implements IFingerPrintUiHelper {
 
     private static final String KEY_NAME = "fp_key";
+    private Context context;
 
-    private FingerprintManagerCompat fingeprintManager;
+
+    private FingerprintManager fingeprintManager;
     private AuthenticationCallback authenticationCallback;
     private CancellationSignal mCancellationSignal;
     private boolean mSelfCancelled;
 
 
-    private FingerprintManagerCompat.CryptoObject crypto;
+    private FingerprintManager.CryptoObject crypto;
     private Cipher mCipher;
     private KeyStore mKeyStore;
     private String keyName = KEY_NAME;
 
 
-    public FingerPrintUIHelper(FingerprintManagerCompat fingerprintManager,AuthenticationCallback authenticationCallback) {
+    //compat
+    private FingerprintManagerCompat fingeprintManagerCompat;
+
+
+    public FingerPrintUIHelper(FingerprintManager fingerprintManager, AuthenticationCallback authenticationCallback) {
         super();
         this.authenticationCallback = authenticationCallback;
         this.fingeprintManager = fingerprintManager;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public FingerPrintUIHelper(Context context, AuthenticationCallback authenticationCallback) {
         super();
+        this.context = context;
         this.authenticationCallback = authenticationCallback;
-        this.fingeprintManager = FingerprintManagerCompat.from(context);
+        this.fingeprintManager = (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
     }
 
-    public FingerPrintUIHelper(FingerprintManagerCompat fingerprintManager,AuthenticationCallback authenticationCallback,String keyName) {
+    public FingerPrintUIHelper(FingerprintManager fingerprintManager, AuthenticationCallback authenticationCallback, String keyName) {
         super();
         this.authenticationCallback = authenticationCallback;
         this.fingeprintManager = fingerprintManager;
@@ -67,23 +80,67 @@ public class FingerPrintUIHelper extends FingerprintManagerCompat.Authentication
     }
 
     public void startListening() {
-        crypto = new FingerprintManagerCompat.CryptoObject(mCipher);
-        startListening(crypto);
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Do something for lollipop and above versions
+
+            crypto = new FingerprintManager.CryptoObject(mCipher);
+            startListening(crypto);
+        }
+
     }
 
 
-    public void startListening(FingerprintManagerCompat.CryptoObject crypto){
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public void startListening(FingerprintManager.CryptoObject crypto) {
         mCancellationSignal = new CancellationSignal();
         mSelfCancelled = false;
-        fingeprintManager.authenticate(crypto,0,mCancellationSignal,this,new Handler(Looper.getMainLooper()));
+
+
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
+            authenticationCallback.onAuthenticationError(111,"Concedi i pemessi");
+        }
+
+        fingeprintManager.authenticate(crypto, mCancellationSignal, 0, new FingerprintManager.AuthenticationCallback() {
+            @Override
+            public void onAuthenticationError(int errorCode, CharSequence errString) {
+                super.onAuthenticationError(errorCode, errString);
+                authenticationCallback.onAuthenticationError(errorCode, errString);
+            }
+
+            @Override
+            public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
+                super.onAuthenticationHelp(helpCode, helpString);
+                authenticationCallback.onAuthenticationHelp(helpCode, helpString);
+            }
+
+            @Override
+            public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
+                super.onAuthenticationSucceeded(result);
+                authenticationCallback.onAuthenticationSucceeded(result);
+            }
+
+            @Override
+            public void onAuthenticationFailed() {
+                super.onAuthenticationFailed();
+                authenticationCallback.onAuthenticationFailed();
+            }
+        }, new Handler(Looper.getMainLooper()));
     }
 
+
     public void stopListening() {
-        if (mCancellationSignal != null) {
-            mSelfCancelled = true;
-            mCancellationSignal.cancel();
-            mCancellationSignal = null;
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // Do something for lollipop and above versions
+            if (mCancellationSignal != null) {
+                mSelfCancelled = true;
+                mCancellationSignal.cancel();
+                mCancellationSignal = null;
+            }
         }
+
+
     }
 
     public AuthenticationCallback getAuthenticationCallback() {
@@ -144,33 +201,41 @@ public class FingerPrintUIHelper extends FingerprintManagerCompat.Authentication
         }
     }
 
-    @Override
-    public void onAuthenticationError(int errMsgId, CharSequence errString) {
-        //super.onAuthenticationError(errMsgId, errString);
-        authenticationCallback.onAuthenticationError(errMsgId,errString);
+
+    public boolean isHardwareDetected() {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Do something for lollipop and above versions
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
+                authenticationCallback.onAuthenticationError(111,"Concedi i pemessi");
+            }
+            return fingeprintManager.isHardwareDetected();
+        } else {
+            // do something for phones running an SDK before lollipop
+            return false;
+        }
+
+
     }
 
-    @Override
-    public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
-        authenticationCallback.onAuthenticationHelp(helpMsgId, helpString);
+    public boolean hasEnrolledFingerprints() {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Do something for lollipop and above versions
+
+
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
+               authenticationCallback.onAuthenticationError(111,"Concedi i pemessi");
+            }
+            return fingeprintManager.hasEnrolledFingerprints();
+        } else{
+            // do something for phones running an SDK before lollipop
+            return false;
+        }
+
+
     }
 
-    @Override
-    public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
-        authenticationCallback.onAuthenticationSucceeded(result);
-    }
-
-    @Override
-    public void onAuthenticationFailed() {
-        authenticationCallback.onAuthenticationFailed();
-    }
-
-    public boolean isHardwareDetected(){
-        return fingeprintManager.isHardwareDetected();
-    }
-
-    public boolean hasEnrolledFingerprints(){
-        return fingeprintManager.hasEnrolledFingerprints();
+    public boolean permissionGranted(){
+        return (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) == PackageManager.PERMISSION_GRANTED);
     }
 
 
@@ -181,7 +246,7 @@ public class FingerPrintUIHelper extends FingerprintManagerCompat.Authentication
 
         void onAuthenticationHelp(int helpMsgId, CharSequence helpString);
 
-        void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result);
+        void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result);
 
         void onAuthenticationFailed();
     }
@@ -199,7 +264,7 @@ public class FingerPrintUIHelper extends FingerprintManagerCompat.Authentication
         }
 
         @Override
-        public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
+        public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
 
         }
 

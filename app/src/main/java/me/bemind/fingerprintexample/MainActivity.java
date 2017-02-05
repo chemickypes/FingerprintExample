@@ -48,7 +48,7 @@ public class MainActivity extends Activity implements FingerPrintUIHelper.Authen
     private static final int REQUEST_FINGER_PRINT_PERMISSION = 234;
     private TextView descTextView;
 
-    private FingerPrintUIHelper fingerPrintUIHelper;
+    private IFingerPrintUiHelper fingerPrintUIHelper;
 
 
     @Override
@@ -66,7 +66,13 @@ public class MainActivity extends Activity implements FingerPrintUIHelper.Authen
 
     private void initFingerPrint() {
 
-        fingerPrintUIHelper = new FingerPrintUIHelper(this, this);
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+            fingerPrintUIHelper = new FingerPrintUIHelper(this, this);
+        }else {
+            fingerPrintUIHelper = new OldFingerPrntUIHelper();
+        }
 
         // crypto = new FingerprintManagerCompat.CryptoObject(mChifer);
 
@@ -126,7 +132,7 @@ public class MainActivity extends Activity implements FingerPrintUIHelper.Authen
     }
 
     @Override
-    public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
+    public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
         fingerPrintUIHelper.stopListening();
         startActivity(new Intent(this,LoggedActivity.class));
     }
