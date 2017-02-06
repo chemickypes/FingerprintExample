@@ -65,3 +65,22 @@ Check if device has Fingerprint hardware and if user has enrolled one fingerprin
 #Android FingerprintManagerCompat has a bug
 As reported [here](https://www.reddit.com/r/androiddev/comments/5r0vox/psa_fingerprintmanagercompat_is_broken_on_the/) ***FingerprintManagerCompat*** returns always *false* (using support library 25.1.0) in any device when we ask if this device has hardware.
 So, in order to avoid this issue I used a manually version control. In this way, min sdk version supported was 15 without problem.
+
+#Other libraries
+If you like RXJava you can use [RxFingerprint](https://github.com/Mauin/RxFingerprint) by Mauin
+
+#License
+
+Copyright 2016 Angelo Moroni
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
