@@ -1,47 +1,20 @@
 package me.bemind.fingerprintexample;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.KeyguardManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyPermanentlyInvalidatedException;
-import android.security.keystore.KeyProperties;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
-import android.support.v4.os.CancellationSignal;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
-import com.google.android.gms.common.api.GoogleApiClient;
+import me.bemind.fingerprinthelper.AuthenticationCallback;
+import me.bemind.fingerprinthelper.FingerPrintHelperBuilder;
+import me.bemind.fingerprinthelper.IFingerPrintUiHelper;
 
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-
-public class MainActivity extends Activity implements FingerPrintUIHelper.AuthenticationCallback {
+public class MainActivity extends Activity implements AuthenticationCallback {
 
 
 
@@ -66,13 +39,7 @@ public class MainActivity extends Activity implements FingerPrintUIHelper.Authen
 
     private void initFingerPrint() {
 
-
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-
-            fingerPrintUIHelper = new FingerPrintUIHelper(this, this);
-        }else {
-            fingerPrintUIHelper = new OldFingerPrntUIHelper();
-        }
+        fingerPrintUIHelper = FingerPrintHelperBuilder.getFingerPrintUIHelper(this,this);
 
         // crypto = new FingerprintManagerCompat.CryptoObject(mChifer);
 

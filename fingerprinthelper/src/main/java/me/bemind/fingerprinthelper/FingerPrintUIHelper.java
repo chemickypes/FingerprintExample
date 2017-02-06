@@ -1,4 +1,4 @@
-package me.bemind.fingerprintexample;
+package me.bemind.fingerprinthelper;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -143,6 +143,11 @@ public class FingerPrintUIHelper implements IFingerPrintUiHelper {
 
     }
 
+    @Override
+    public void removeListener() {
+        authenticationCallback = new NullAuthenticationCallback();
+    }
+
     public AuthenticationCallback getAuthenticationCallback() {
         return authenticationCallback;
     }
@@ -241,36 +246,7 @@ public class FingerPrintUIHelper implements IFingerPrintUiHelper {
 
 
 
-    public interface AuthenticationCallback{
-        void onAuthenticationError(int errMsgId, CharSequence errString) ;
 
-        void onAuthenticationHelp(int helpMsgId, CharSequence helpString);
 
-        void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result);
 
-        void onAuthenticationFailed();
-    }
-
-    public class NullAuthenticationCallback implements AuthenticationCallback{
-
-        @Override
-        public void onAuthenticationError(int errMsgId, CharSequence errString) {
-
-        }
-
-        @Override
-        public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
-
-        }
-
-        @Override
-        public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
-
-        }
-
-        @Override
-        public void onAuthenticationFailed() {
-
-        }
-    }
 }

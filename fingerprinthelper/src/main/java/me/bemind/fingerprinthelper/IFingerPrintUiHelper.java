@@ -1,4 +1,4 @@
-package me.bemind.fingerprintexample;
+package me.bemind.fingerprinthelper;
 
 /**
  * Created by angelomoroni on 05/02/17.
@@ -15,4 +15,9 @@ public interface IFingerPrintUiHelper {
     boolean initCipher();
 
     void stopListening();
+
+
+    void removeListener();
+
+    void setAuthenticationCallback(AuthenticationCallback authenticationCallback);
 }

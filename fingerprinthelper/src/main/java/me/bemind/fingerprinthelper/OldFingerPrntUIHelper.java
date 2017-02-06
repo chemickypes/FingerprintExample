@@ -1,4 +1,4 @@
-package me.bemind.fingerprintexample;
+package me.bemind.fingerprinthelper;
 
 /**
  * Created by angelomoroni on 05/02/17.
@@ -26,6 +26,16 @@ public class OldFingerPrntUIHelper implements IFingerPrintUiHelper {
 
     @Override
     public void stopListening() {
+
+    }
+
+    @Override
+    public void removeListener() {
+
+    }
+
+    @Override
+    public void setAuthenticationCallback(AuthenticationCallback authenticationCallback) {
 
     }
 }
