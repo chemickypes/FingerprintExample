@@ -241,7 +241,7 @@ public class FingerPrintUIHelper implements IFingerPrintUiHelper {
                     .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
                     // Require the user to authenticate with a fingerprint to authorize every use
                     // of the key
-                    .setUserAuthenticationRequired(false)
+                    .setUserAuthenticationRequired(true)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
                     .build());
             keyGenerator.generateKey();
