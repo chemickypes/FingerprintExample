@@ -1,5 +1,9 @@
 package me.bemind.fingerprinthelper;
 
+import java.security.spec.InvalidParameterSpecException;
+
+import javax.crypto.Cipher;
+
 /**
  * Created by angelomoroni on 05/02/17.
  */
@@ -20,4 +24,8 @@ public interface IFingerPrintUiHelper {
     void removeListener();
 
     void setAuthenticationCallback(AuthenticationCallback authenticationCallback);
+
+    Cipher getCipher();
+
+    byte[] saveIvParams() throws InvalidParameterSpecException;
 }

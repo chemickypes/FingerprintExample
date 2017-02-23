@@ -25,11 +25,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.spec.InvalidParameterSpecException;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
 /**
  * Created by angelomoroni on 01/02/17.
@@ -156,25 +158,68 @@ public class FingerPrintUIHelper implements IFingerPrintUiHelper {
         this.authenticationCallback = authenticationCallback;
     }
 
+    @Override
+    public Cipher getCipher() {
+        return mCipher;
+    }
+
     @TargetApi(Build.VERSION_CODES.M)
     public boolean initCipher() {
+        return initCipher(true, new byte[0]);
+    }
+
+    /**
+     * Init cipher int encrypt mode (if parameter is true) o decrypt mode
+     * @param encryptMode
+     * @param iv bytes of file where is store IvParams
+     * @return true if all is ok, false otherwise
+     */
+    @TargetApi(Build.VERSION_CODES.M)
+    public boolean initCipher(boolean encryptMode, byte[] iv) {
+
+        IvParameterSpec ivParams = new IvParameterSpec(iv);
+
+        return initCipher(encryptMode,ivParams);
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    public boolean initCipher(boolean encryptMode, IvParameterSpec ivParams) {
         try {
-            if (mKeyStore == null) {
-                createKey();
-            }
+
+            mKeyStore = KeyStore.getInstance("AndroidKeystore");
             mKeyStore.load(null);
             SecretKey key = (SecretKey) mKeyStore.getKey(keyName, null);
+
+
+            if (key == null) {
+                createKey();
+                key = (SecretKey) mKeyStore.getKey(keyName, null);
+            }
 
             mCipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/"
                     + KeyProperties.BLOCK_MODE_CBC + "/"
                     + KeyProperties.ENCRYPTION_PADDING_PKCS7);
-            mCipher.init(Cipher.ENCRYPT_MODE, key);
+
+            if(encryptMode){
+                mCipher.init(Cipher.ENCRYPT_MODE, key);
+
+            }else {
+
+                mCipher.init(Cipher.DECRYPT_MODE, key,ivParams);
+
+            }
             return true;
         } catch (KeyPermanentlyInvalidatedException e) {
+            e.printStackTrace();
             return false;
         } catch (KeyStoreException | CertificateException | UnrecoverableKeyException | IOException
                 | NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException e) {
-            throw new RuntimeException("Failed to init Cipher", e);
+            //throw new RuntimeException("Failed to init Cipher", e);
+            e.printStackTrace();
+            return false;
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
         }
     }
 
@@ -196,7 +241,7 @@ public class FingerPrintUIHelper implements IFingerPrintUiHelper {
                     .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
                     // Require the user to authenticate with a fingerprint to authorize every use
                     // of the key
-                    .setUserAuthenticationRequired(true)
+                    .setUserAuthenticationRequired(false)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
                     .build());
             keyGenerator.generateKey();
@@ -237,6 +282,12 @@ public class FingerPrintUIHelper implements IFingerPrintUiHelper {
         }
 
 
+    }
+
+    @Override
+    public byte[] saveIvParams() throws InvalidParameterSpecException {
+        IvParameterSpec ivParams = getCipher().getParameters().getParameterSpec(IvParameterSpec.class);
+        return ivParams.getIV();
     }
 
     public boolean permissionGranted(){
