@@ -6,11 +6,11 @@ However, in this moment library isn't on Marvel or Gradle Server. Sorry.
 
 Anyway, I hope this project can help someone. 
 
-#Example
+## Example
 
 Check if device has Fingerprint hardware and if user has enrolled one fingerprint
 
-``` 
+``` java
   fingerPrintUIHelper = FingerPrintHelperBuilder.getFingerPrintUIHelper(this,authenticationCallback);
         if (!fingerPrintUIHelper.isHardwareDetected()) {
             // Device doesn't support fingerprint authentication
@@ -40,7 +40,7 @@ Check if device has Fingerprint hardware and if user has enrolled one fingerprin
  
  And now, start listening...
  
- ```
+ ```java
   private void startListeningFingerPrint() {
         if(fingerPrintUIHelper.initCipher()){
             fingerPrintUIHelper.startListening();
@@ -52,7 +52,7 @@ Check if device has Fingerprint hardware and if user has enrolled one fingerprin
  ```
  
 *AuthenticationCallback* has these methods
-```
+``` java
     void onAuthenticationError(int errMsgId, CharSequence errString) ;
 
     void onAuthenticationHelp(int helpMsgId, CharSequence helpString);
@@ -62,14 +62,14 @@ Check if device has Fingerprint hardware and if user has enrolled one fingerprin
     void onAuthenticationFailed();
 ```
 
-#Android FingerprintManagerCompat has a bug
+## Android FingerprintManagerCompat has a bug
 As reported [here](https://www.reddit.com/r/androiddev/comments/5r0vox/psa_fingerprintmanagercompat_is_broken_on_the/) ***FingerprintManagerCompat*** returns always *false* (using support library 25.1.0) in any device when we ask if this device has hardware.
 So, in order to avoid this issue I used a manually version control. In this way, min sdk version supported was 15 without problem.
 
-#Other libraries
+## Other libraries
 If you like RXJava you can use [RxFingerprint](https://github.com/Mauin/RxFingerprint) by Mauin
 
-#License
+## License
 
 Copyright 2016 Angelo Moroni
 
